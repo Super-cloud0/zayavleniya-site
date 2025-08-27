@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -76,4 +77,84 @@
         });
     </script>
 </body>
+=======
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>О проекте | НИШ Актобе</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-content">
+        <h1>Онлайн-заявления для общежития</h1>
+        <nav class="desktop-nav">
+            <a href="index.html">Главная</a>
+            <a href="application.html" id="parent-app-link">Отправить заявление</a>
+            <a href="educator.html" id="educator-app-link" style="display:none;">Пришедшие заявления</a>
+            <a href="admin.html" id="admin-panel-link" style="display:none;">Панель администратора</a>
+            <a href="about.html">О проекте</a>
+            <a href="author.html">Об авторе</a>
+        </nav>
+        <div class="header-right">
+            <div class="status-indicator"></div>
+            <button id="logout-btn" style="display:none;">Выход</button>
+        </div>
+        <button class="burger-menu" id="burger-menu">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+</header>
+
+    <div class="sidebar-menu" id="sidebar-menu">
+        <button class="close-btn" id="close-btn">
+            <i class="fas fa-times"></i>
+        </button>
+<nav class="mobile-nav">
+    <a href="index.html">Главная</a>
+    <a href="application.html" id="parent-app-link-mobile">Отправить заявление</a>
+    <a href="educator.html" id="educator-app-link-mobile" style="display:none;">Пришедшие заявления</a>
+     <a href="admin.html" id="admin-panel-link-mobile" style="display:none;">Панель администратора</a>
+    <a href="about.html">О проекте</a>
+    <a href="author.html">Об авторе</a>
+</nav>
+    </div>
+
+    <div class="container">
+        <h2>О проекте</h2>
+        <p>
+            Этот веб-сайт был разработан как дипломный проект, чтобы решить проблему с подачей заявлений на временный уход из общежития Назарбаев Интеллектуальной школы физико-математического направления г.Актобе. В настоящее время процесс подачи заявлений является устаревшим и трудоемким: ученикам приходится скачивать, распечатывать и заполнять бумажную форму, а затем относить её в администрацию.
+        </p>
+        <p>
+            Наша цель — сделать этот процесс простым, быстрым и экологичным. С помощью этого сайта учащиеся и их родители могут подать заявление онлайн, в любое время и из любого места. Это не только экономит время и бумагу, но и обеспечивает прозрачность и удобство для всех сторон.
+        </p>
+    </div>
+
+    <script src="folder/auth.js"></script>
+    <script>
+        // Код для бургер-меню
+        document.addEventListener('DOMContentLoaded', () => {
+            const burgerMenu = document.getElementById('burger-menu');
+            const closeBtn = document.getElementById('close-btn');
+            const sidebarMenu = document.getElementById('sidebar-menu');
+
+            if (burgerMenu) {
+                burgerMenu.addEventListener('click', () => {
+                    sidebarMenu.classList.add('active');
+                });
+            }
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    sidebarMenu.classList.remove('active');
+                });
+            }
+        });
+    </script>
+</body>
+>>>>>>> ad92b70ae96d163e511d8e6b256a8f27dbec96fc
 </html>
