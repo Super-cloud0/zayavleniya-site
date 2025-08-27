@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная | НИШ Актобе</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-content">
+        <h1>Онлайн-заявления для общежития</h1>
+      <nav class="desktop-nav">
+    <a href="index.html">Главная</a>
+    <a href="application.html" id="parent-app-link">Отправить заявление</a>
+    <a href="educator.html" id="educator-app-link" style="display:none;">Пришедшие заявления</a>    
+    <a href="admin.html" id="admin-panel-link" style="display:none;">Панель администратора</a>
+    <a href="about.html">О проекте</a>
+    <a href="author.html">Об авторе</a>
+</nav>
+        <div class="header-right">
+            <div class="status-indicator"></div>
+            <button id="logout-btn" style="display:none;">Выход</button>
+        </div>
+        <button class="burger-menu" id="burger-menu">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+</header>
+
+    <div class="container">
+        <h2>Выберите действие</h2>
+        <div class="menu-grid">
+          <a href="application.html" class="menu-item" id="application-card-link">
+    <h3 id="application-card-title">Отправить заявление</h3>
+    <p id="application-card-description">Подача заявления на временный уход из общежития.</p>
+</a>
+            <a href="about.html" class="menu-item">
+                <h3>О проекте</h3>
+                <p>Информация о целях и задачах проекта.</p>
+            </a>
+            <a href="author.html" class="menu-item">
+                <h3>Об авторе</h3>
+                <p>Информация об авторе проекта и благодарности.</p>
+            </a>
+        </div>
+
+        <h2>Войти или зарегистрироваться</h2>
+        <div class="menu-grid">
+            <a href="login.html" class="menu-item">
+                <h3>Войти</h3>
+                <p>Вход в личный кабинет.</p>
+            </a>
+            <a href="registration.html" class="menu-item">
+                <h3>Регистрация</h3>
+                <p>Создание нового аккаунта.</p>
+            </a>
+        </div>
+    </div>
+    <script src="folder/auth.js"></script>
+</body>
+</html>
