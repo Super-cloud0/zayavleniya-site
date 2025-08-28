@@ -152,39 +152,58 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Logic for registration form (registration.html)
-    const registrationForm = document.getElementById('registration-form');
-    if (registrationForm) {
-        registrationForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const iinInput = document.getElementById('iin').value;
-            const passwordInput = document.getElementById('password').value;
-            const confirmPasswordInput = document.getElementById('confirm_password').value;
-            const messageDiv = document.getElementById('message');
+   const registrationForm = document.getElementById('registration-form');
+if (registrationForm) {
+    registrationForm.addEventListener('submit', async (e) => { // Добавляем 'async'
+        e.preventDefault();
+        const iinInput = document.getElementById('iin').value;
+        const passwordInput = document.getElementById('password').value;
+        const confirmPasswordInput = document.getElementById('confirm_password').value;
+        const messageDiv = document.getElementById('message');
 
-            if (passwordInput !== confirmPasswordInput) {
-                messageDiv.textContent = 'Пароли не совпадают!';
+        if (passwordInput !== confirmPasswordInput) {
+            messageDiv.textContent = 'Пароли не совпадают!';
+            messageDiv.style.color = '#a52a2a';
+            messageDiv.style.backgroundColor = '#ffebeb';
+            messageDiv.style.display = 'block';
+            return;
+        }
+
+        const user = { iin: iinInput, password: passwordInput, role: 'parent' };
+
+        try {
+            // Отправляем данные на бэкенд вместо localStorage
+            const response = await fetch('https://zayavleniya-site-1.onrender.com', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(user)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                messageDiv.textContent = data.message;
+                messageDiv.style.backgroundColor = '#d4edda';
+                messageDiv.style.color = '#155724';
+                messageDiv.style.display = 'block';
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1000);
+            } else {
+                messageDiv.textContent = data.message;
                 messageDiv.style.color = '#a52a2a';
                 messageDiv.style.backgroundColor = '#ffebeb';
                 messageDiv.style.display = 'block';
-                return;
             }
-
-            const user = {
-                iin: iinInput,
-                password: passwordInput,
-                role: 'parent'
-            };
-            localStorage.setItem('registeredUser', JSON.stringify(user));
-            messageDiv.textContent = 'Вы успешно зарегистрированы!';
-            messageDiv.style.backgroundColor = '#d4edda';
-            messageDiv.style.color = '#155724';
+        } catch (error) {
+            console.error('Ошибка:', error);
+            messageDiv.textContent = 'Ошибка сервера. Попробуйте еще раз позже.';
+            messageDiv.style.color = '#a52a2a';
+            messageDiv.style.backgroundColor = '#ffebeb';
             messageDiv.style.display = 'block';
-
-            setTimeout(() => {
-                window.location.href = 'login.html';
-            }, 1000);
-        });
-    }
+        }
+    });
+}
 
     // Logic for application page (application.html)
     const applicationForm = document.getElementById('application-form');
