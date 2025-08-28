@@ -1,38 +1,32 @@
 const mongoose = require('mongoose');
-const User = require('./server'); // Используйте правильный путь, если модель в другом файле
+const User = require('./server'); // Подключаем модель пользователя из server.js
 
-// Проверяем, что переменная окружения MONGO_URI существует
-if (!process.env.MONGO_URI) {
-    console.error("Ошибка: Переменная окружения MONGO_URI не установлена.");
-    process.exit(1);
-}
-
-// Подключение к базе данных MongoDB, используя переменную окружения
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
+// Подключение к базе данных MongoDB
+mongoose.connect('mongodb+srv://Alisher:Alisher228@cluster0.ajmm1ju.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
 }).then(async () => {
-    console.log('Подключение к MongoDB для скрипта успешно!');
+  console.log('Подключение к MongoDB для скрипта успешно!');
 
-    const iinToUpdate = '100610553952'; // Вставьте ИИН пользователя
+  const iinToUpdate = '100610553952'; // <-- Вставьте ИИН пользователя, которому хотите дать роль администратора
+  
+  try {
+    const user = await User.findOneAndUpdate(
+      { iin: iinToUpdate },
+      { role: 'admin' },
+      { new: true }
+    );
     
-    try {
-        const user = await User.findOneAndUpdate(
-            { iin: iinToUpdate },
-            { role: 'admin' },
-            { new: true }
-        );
-        
-        if (user) {
-            console.log(`Успешно! Роль пользователя с ИИН ${user.iin} изменена на ${user.role}`);
-        } else {
-            console.log(`Пользователь с ИИН ${iinToUpdate} не найден.`);
-        }
-    } catch (error) {
-        console.error('Ошибка при обновлении роли:', error);
-    } finally {
-        mongoose.connection.close();
+    if (user) {
+      console.log(`Успешно! Роль пользователя с ИИН ${user.iin} изменена на ${user.role}`);
+    } else {
+      console.log(`Пользователь с ИИН ${iinToUpdate} не найден.`);
     }
+  } catch (error) {
+    console.error('Ошибка при обновлении роли:', error);
+  } finally {
+    mongoose.connection.close();
+  }
 }).catch(err => {
-    console.error('Ошибка подключения к MongoDB:', err);
+  console.error('Ошибка подключения к MongoDB:', err);
 });
