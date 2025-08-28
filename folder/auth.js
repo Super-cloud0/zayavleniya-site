@@ -113,18 +113,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Logic for login form (login.html)
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const iinInput = document.getElementById('iin').value;
-            const passwordInput = document.getElementById('password').value;
-            const messageDiv = document.getElementById('message');
-            const registeredUser = JSON.parse(localStorage.getItem('registeredUser'));
+ // Logic for login form (login.html)
+const loginForm = document.getElementById('login-form');
+if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const iinInput = document.getElementById('iin').value;
+        const passwordInput = document.getElementById('password').value;
+        const messageDiv = document.getElementById('message');
 
-            if (registeredUser && iinInput === registeredUser.iin && passwordInput === registeredUser.password) {
+        const credentials = { iin: iinInput, password: passwordInput };
+
+        try {
+            const response = await fetch('https://zayavleniya-site-1.onrender.com/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(credentials)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
                 localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('userRole', registeredUser.role);
+                localStorage.setItem('userRole', data.role); // Сохраняем роль пользователя
                 messageDiv.textContent = 'Вход выполнен успешно!';
                 messageDiv.style.backgroundColor = '#d4edda';
                 messageDiv.style.color = '#155724';
@@ -132,29 +143,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateStatusAndNav();
 
                 setTimeout(() => {
-                    if (registeredUser.role === 'admin') {
-                        window.location.href = 'admin.html';
-                    } else if (registeredUser.role === 'educator') {
-                        window.location.href = 'educator.html';
-                    } else {
-                        window.location.href = 'application.html';
-                    }
+                    if (data.role === 'admin') { window.location.href = 'admin.html'; }
+                    else if (data.role === 'educator') { window.location.href = 'educator.html'; }
+                    else { window.location.href = 'application.html'; }
                 }, 1000);
             } else {
                 localStorage.setItem('isLoggedIn', 'false');
-                messageDiv.textContent = 'Неправильный ИИН или пароль!';
+                messageDiv.textContent = data.message;
                 messageDiv.style.color = '#a52a2a';
                 messageDiv.style.backgroundColor = '#ffebeb';
                 messageDiv.style.display = 'block';
                 updateStatusAndNav();
             }
-        });
-    }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            messageDiv.textContent = 'Ошибка сервера. Попробуйте еще раз позже.';
+            messageDiv.style.color = '#a52a2a';
+            messageDiv.style.backgroundColor = '#ffebeb';
+            messageDiv.style.display = 'block';
+        }
+    });
+}
 
     // Logic for registration form (registration.html)
-   const registrationForm = document.getElementById('registration-form');
+// Logic for registration form (registration.html)
+const registrationForm = document.getElementById('registration-form');
 if (registrationForm) {
-    registrationForm.addEventListener('submit', async (e) => { // Добавляем 'async'
+    registrationForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const iinInput = document.getElementById('iin').value;
         const passwordInput = document.getElementById('password').value;
@@ -172,8 +187,7 @@ if (registrationForm) {
         const user = { iin: iinInput, password: passwordInput, role: 'parent' };
 
         try {
-            // Отправляем данные на бэкенд вместо localStorage
-            const response = await fetch('https://zayavleniya-site-1.onrender.com', {
+            const response = await fetch('https://zayavleniya-site-1.onrender.com/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(user)
@@ -186,9 +200,7 @@ if (registrationForm) {
                 messageDiv.style.backgroundColor = '#d4edda';
                 messageDiv.style.color = '#155724';
                 messageDiv.style.display = 'block';
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 1000);
+                setTimeout(() => { window.location.href = 'login.html'; }, 1000);
             } else {
                 messageDiv.textContent = data.message;
                 messageDiv.style.color = '#a52a2a';
@@ -206,65 +218,84 @@ if (registrationForm) {
 }
 
     // Logic for application page (application.html)
-    const applicationForm = document.getElementById('application-form');
-    const submitButton = document.getElementById('submit-button');
-    const applicationMessageDiv = document.getElementById('application-message');
+// Logic for application page (application.html)
+const applicationForm = document.getElementById('application-form');
+const submitButton = document.getElementById('submit-button');
+const applicationMessageDiv = document.getElementById('application-message');
 
-    if (applicationForm && submitButton) {
-        if (localStorage.getItem('isLoggedIn') === 'true') {
-            submitButton.disabled = false;
-            submitButton.textContent = 'Отправить заявление';
-            submitButton.style.backgroundColor = '';
-        } else {
-            submitButton.disabled = true;
-            submitButton.textContent = 'Войдите, чтобы отправить';
-            submitButton.style.backgroundColor = '#ccc';
-        }
-
-        applicationForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            if (localStorage.getItem('isLoggedIn') !== 'true') {
-                alert('Пожалуйста, войдите в систему, чтобы отправить заявление!');
-                return;
-            }
-            const directorName = document.getElementById('director_name').value;
-            const applicationType = document.getElementById('applicationType').value;
-            const parentName = document.getElementById('parent_name').value;
-            const address = document.getElementById('address').value;
-            const phone = document.getElementById('phone').value;
-            const childClass = document.getElementById('child_class').value;
-            const childName = document.getElementById('child_name').value;
-            const startDate = document.getElementById('start_date').value;
-            const endDate = document.getElementById('end_date').value;
-            const userIIN = JSON.parse(localStorage.getItem('registeredUser')).iin;
-
-            const applicationData = {
-                iin: userIIN,
-                director_name: directorName,
-                application_type: applicationType,
-                parent_name: parentName,
-                address: address,
-                phone: phone,
-                child_class: childClass,
-                child_name: childName,
-                start_date: startDate,
-                end_date: endDate,
-                status: 'pending',
-                timestamp: new Date().toISOString()
-            };
-            let applications = JSON.parse(localStorage.getItem('applications')) || [];
-            applications.push(applicationData);
-            localStorage.setItem('applications', JSON.stringify(applications));
-            applicationMessageDiv.textContent = 'Ваше заявление успешно отправлено!';
-            applicationMessageDiv.style.backgroundColor = '#d4edda';
-            applicationMessageDiv.style.color = '#155724';
-            applicationMessageDiv.style.display = 'block';
-            applicationForm.reset();
-            setTimeout(() => {
-                applicationMessageDiv.style.display = 'none';
-            }, 5000);
-        });
+if (applicationForm && submitButton) {
+    if (localStorage.getItem('isLoggedIn') === 'true') {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Отправить заявление';
+        submitButton.style.backgroundColor = '';
+    } else {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Войдите, чтобы отправить';
+        submitButton.style.backgroundColor = '#ccc';
     }
+
+    applicationForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            alert('Пожалуйста, войдите в систему, чтобы отправить заявление!');
+            return;
+        }
+        const directorName = document.getElementById('director_name').value;
+        const applicationType = document.getElementById('applicationType').value;
+        const parentName = document.getElementById('parent_name').value;
+        const address = document.getElementById('address').value;
+        const phone = document.getElementById('phone').value;
+        const childClass = document.getElementById('child_class').value;
+        const childName = document.getElementById('child_name').value;
+        const startDate = document.getElementById('start_date').value;
+        const endDate = document.getElementById('end_date').value;
+
+        const applicationData = {
+            director_name: directorName,
+            application_type: applicationType,
+            parent_name: parentName,
+            address: address,
+            phone: phone,
+            child_class: childClass,
+            child_name: childName,
+            start_date: startDate,
+            end_date: endDate,
+            status: 'pending',
+        };
+
+        try {
+            const response = await fetch('https://zayavleniya-site-1.onrender.com/applications', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Здесь можно добавить токен авторизации, если он требуется на сервере
+                },
+                body: JSON.stringify(applicationData)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                applicationMessageDiv.textContent = 'Ваше заявление успешно отправлено!';
+                applicationMessageDiv.style.backgroundColor = '#d4edda';
+                applicationMessageDiv.style.color = '#155724';
+                applicationMessageDiv.style.display = 'block';
+                applicationForm.reset();
+            } else {
+                applicationMessageDiv.textContent = data.message || 'Ошибка при отправке заявления.';
+                applicationMessageDiv.style.backgroundColor = '#ffebeb';
+                applicationMessageDiv.style.color = '#a52a2a';
+                applicationMessageDiv.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            applicationMessageDiv.textContent = 'Ошибка сервера. Попробуйте еще раз позже.';
+            applicationMessageDiv.style.backgroundColor = '#ffebeb';
+            applicationMessageDiv.style.color = '#a52a2a';
+            applicationMessageDiv.style.display = 'block';
+        }
+    });
+}
 
     // Logic for logging out
     if (logoutBtn) {
