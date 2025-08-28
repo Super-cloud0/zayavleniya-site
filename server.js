@@ -10,13 +10,22 @@ app.use(cors({ origin: 'https://zayavleniya-site.vercel.app' }));
 app.use(express.json());
 
 // Подключение к базе данных MongoDB
-mongoose.connect('mongodb+srv://Alisher:<db_password>@cluster0.ajmm1ju.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => {
-  console.log('Успешное подключение к MongoDB!');
-}).catch(err => {
-  console.error('Ошибка подключения к MongoDB:', err);
+const mongoose = require('mongoose');
+const cors = require('cors');
+const app = express();
+
+const MONGODB_URI = process.env.MONGO_URI; // Используем переменную окружения
+
+// Подключение к базе данных MongoDB
+mongoose.connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
+.then(() => {
+    console.log("Успешное подключение к MongoDB!");
+})
+.catch((err) => {
+    console.error("Ошибка подключения к MongoDB:", err);
 });
 
 // Схема и модель для пользователя
