@@ -8,7 +8,7 @@ mongoose.connect('mongodb://localhost:27017/usersDB', {
 }).then(async () => {
   console.log('Подключение к MongoDB для скрипта успешно!');
 
-  const iinToUpdate = '100610553952'; // <-- Вставьте ИИН пользователя, которому хотите дать роль администратора
+  const iinToUpdate = '10061055395222'; // <-- Вставьте ИИН пользователя, которому хотите дать роль администратора
   
   try {
     const user = await User.findOneAndUpdate(
