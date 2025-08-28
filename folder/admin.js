@@ -72,5 +72,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Инициализируем отображение пользователей при загрузке страницы
     renderUsers();
->>>>>>> ad92b70ae96d163e511d8e6b256a8f27dbec96fc
 });
