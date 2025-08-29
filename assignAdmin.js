@@ -1,32 +1,37 @@
 const mongoose = require('mongoose');
-const User = require('./server'); // Подключаем модель пользователя из server.js
+const dotenv = require('dotenv');
+const User = require('./models/User');
 
-// Подключение к базе данных MongoDB
-mongoose.connect('mongodb+srv://Alisher:Alisher228@cluster0.ajmm1ju.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
+// Загружаем .env
+dotenv.config();
+
+mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
-}).then(async () => {
-  console.log('Подключение к MongoDB для скрипта успешно!');
+})
+.then(async () => {
+  console.log('Подключение к MongoDB успешно!');
 
-  const iinToUpdate = '100610553952'; // <-- Вставьте ИИН пользователя, которому хотите дать роль администратора
-  
+  const iinToUpdate = '100610553952';
+
   try {
     const user = await User.findOneAndUpdate(
       { iin: iinToUpdate },
       { role: 'admin' },
       { new: true }
     );
-    
+
     if (user) {
-      console.log(`Успешно! Роль пользователя с ИИН ${user.iin} изменена на ${user.role}`);
+      console.log(`✅ Успешно! Роль пользователя с ИИН ${user.iin} изменена на ${user.role}`);
     } else {
-      console.log(`Пользователь с ИИН ${iinToUpdate} не найден.`);
+      console.log(`❌ Пользователь с ИИН ${iinToUpdate} не найден.`);
     }
   } catch (error) {
     console.error('Ошибка при обновлении роли:', error);
   } finally {
     mongoose.connection.close();
   }
-}).catch(err => {
+})
+.catch(err => {
   console.error('Ошибка подключения к MongoDB:', err);
 });
