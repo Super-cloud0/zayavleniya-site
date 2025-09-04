@@ -116,13 +116,25 @@ app.post('/applications', async (req, res) => {
 });
 
 // Маршрут для получения всех заявлений (для администратора/воспитателя)
-app.get('/applications', async (req, res) => {
+app.get('/users', async (req, res) => {
     try {
-        const applications = await Application.find({});
-        res.status(200).send(applications);
+        const users = await User.find({}, '-password');
+        res.status(200).json(users);
     } catch (error) {
-        console.error("Ошибка при получении заявлений:", error);
-        res.status(500).send({ message: 'Ошибка сервера при получении заявлений.' });
+        res.status(500).json({ message: 'Ошибка сервера при получении пользователей.' });
+    }
+});
+
+// Изменить роль пользователя по ИИН
+app.put('/users/:iin/role', async (req, res) => {
+    try {
+        const { iin } = req.params;
+        const { role } = req.body;
+        const user = await User.findOneAndUpdate({ iin }, { role }, { new: true });
+        if (!user) return res.status(404).json({ message: 'Пользователь не найден.' });
+        res.status(200).json({ message: 'Роль обновлена.', user });
+    } catch (error) {
+        res.status(500).json({ message: 'Ошибка сервера при обновлении роли.' });
     }
 });
 
