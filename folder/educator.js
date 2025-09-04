@@ -6,21 +6,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const userRole = localStorage.getItem('userRole');
     if (userRole !== 'educator') {
         window.location.href = 'index.html';
-        return; 
+        return;
     }
 
-    function renderApplications() {
-        async function fetchApplicationsFromServer() {
-    const response = await fetch('https://zayavleniya-site-1.onrender.com/applications');
-    const applications = await response.json();
-    // Дальнейшая отрисовка как сейчас
-}
-
-        if (applications.length === 0) {
+    // Загружаем заявления с сервера
+    async function fetchApplicationsFromServer() {
+        try {
+            const response = await fetch('https://zayavleniya-site-1.onrender.com/applications');
+            const applications = await response.json();
+            renderApplications(applications);
+        } catch (error) {
+            console.error('Ошибка загрузки заявлений:', error);
+            noApplicationsMessage.textContent = "Ошибка загрузки заявлений!";
             noApplicationsMessage.style.display = 'block';
+        }
+    }
+
+    // Отрисовка заявлений
+    function renderApplications(applications) {
+        if (!applications || applications.length === 0) {
+            noApplicationsMessage.style.display = 'block';
+            applicationsList.innerHTML = '';
             return;
         }
-
         applicationsList.innerHTML = '';
         noApplicationsMessage.style.display = 'none';
 
@@ -34,19 +42,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (app.status === 'pending') {
                 statusClass = 'status-pending';
                 actionButtons = `
-                    <button class="approve-btn" data-index="${index}">Одобрить</button>
-                    <button class="reject-btn" data-index="${index}">Отклонить</button>
+                    <button class="approve-btn" data-id="${app._id}">Одобрить</button>
+                    <button class="reject-btn" data-id="${app._id}">Отклонить</button>
                 `;
             } else if (app.status === 'approved') {
                 statusClass = 'status-approved';
                 actionButtons = `
-                    <button class="download-btn" data-index="${index}">Скачать еще раз</button>
-                    <button class="delete-btn" data-index="${index}">Удалить</button>
+                    <button class="download-btn" data-id="${app._id}">Скачать еще раз</button>
+                    <button class="delete-btn" data-id="${app._id}">Удалить</button>
                 `;
             } else if (app.status === 'rejected') {
                 statusClass = 'status-rejected';
                 actionButtons = `
-                    <button class="delete-btn" data-index="${index}">Удалить</button>
+                    <button class="delete-btn" data-id="${app._id}">Удалить</button>
                 `;
             }
 
@@ -67,89 +75,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Функция для генерации и скачивания Word-документа
-   async function generateDocx(data) {
-        try {
-            const response = await fetch('./ЗАЯВЛЕНИЕ О ВРЕМЕННОМ УХОДЕ (2).docx');
-            const content = await response.arrayBuffer();
+    // Функция для генерации и скачивания Word-документа (оставь как есть)
 
-            const zip = new PizZip(content);
-            const doc = new docxtemplater(zip, {
-                paragraphLoop: true,
-                linebreaks: true,
-            });
-
-            // Определяем текст в зависимости от типа заявления
-            let applicationText = '';
-            if (data.application_type === 'weekend') {
-                applicationText = `с ${data.start_date} по ${data.end_date} года на выходные дни.`;
-            } else if (data.application_type === 'health') {
-                applicationText = `с ${data.start_date} по ${data.end_date} года по состоянию здоровья.`;
-            } else if (data.application_type === 'family') {
-                applicationText = `с ${data.start_date} по ${data.end_date} года по семейным обстоятельствам.`;
-            } else if (data.application_type === 'health_family') {
-                applicationText = `с ${data.start_date} по ${data.end_date} года по состоянию здоровья/по семейным обстоятельствам.`;
-            } else if (data.application_type === 'holidays') {
-                applicationText = `с ${data.start_date} по ${data.end_date} года на каникулы.`;
-            } else {
-                applicationText = `с ${data.start_date} по ${data.end_date} года по неуказанной причине.`;
-            }
-            
-            // Форматируем дату подачи
-            const submissionDate = new Date(data.timestamp).toLocaleDateString('ru-RU', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-            });
-
-            // Заполняем документ данными
-            doc.setData({
-                parent_name: data.parent_name,
-                address: data.address,
-                phone: data.phone,
-                child_name: data.child_name,
-                child_class: data.child_class,
-                dates: applicationText,
-                submission_date: submissionDate
-            });
-
-            doc.render();
-
-            const out = doc.getZip().generate({
-                type: 'blob',
-                mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            });
-            
-            saveAs(out, `Заявление_${data.child_name}.docx`);
-
-        } catch (error) {
-            console.error("Ошибка при создании документа:", error);
-            alert("Ошибка при создании документа. Пожалуйста, попробуйте еще раз.");
-        }
-    }
-
-    renderApplications();
-
-    // Добавляем обработчики для кнопок
+    // Делегируем обработчики кнопок
     applicationsList.addEventListener('click', async (e) => {
-        const index = e.target.dataset.index;
-        let applications = JSON.parse(localStorage.getItem('applications'));
-        
+        const appId = e.target.dataset.id;
+        if (!appId) return;
+
+        // approve
         if (e.target.classList.contains('approve-btn')) {
-            applications[index].status = 'approved';
-            localStorage.setItem('applications', JSON.stringify(applications));
-            await generateDocx(applications[index]);
-            renderApplications();
-        } else if (e.target.classList.contains('reject-btn')) {
-            applications[index].status = 'rejected';
-            localStorage.setItem('applications', JSON.stringify(applications));
-            renderApplications();
-        } else if (e.target.classList.contains('delete-btn')) {
-            applications.splice(index, 1);
-            localStorage.setItem('applications', JSON.stringify(applications));
-            renderApplications();
-        } else if (e.target.classList.contains('download-btn')) {
-            await generateDocx(applications[index]);
+            await fetch(`https://zayavleniya-site-1.onrender.com/applications/${appId}/approve`, { method: 'PATCH' });
+            fetchApplicationsFromServer();
+        }
+        // reject
+        else if (e.target.classList.contains('reject-btn')) {
+            await fetch(`https://zayavleniya-site-1.onrender.com/applications/${appId}/reject`, { method: 'PATCH' });
+            fetchApplicationsFromServer();
+        }
+        // delete
+        else if (e.target.classList.contains('delete-btn')) {
+            await fetch(`https://zayavleniya-site-1.onrender.com/applications/${appId}`, { method: 'DELETE' });
+            fetchApplicationsFromServer();
+        }
+        // download
+        else if (e.target.classList.contains('download-btn')) {
+            // Найди заявление по ID и вызови generateDocx
+            const response = await fetch(`https://zayavleniya-site-1.onrender.com/applications/${appId}`);
+            const app = await response.json();
+            await generateDocx(app);
         }
     });
+
+    // Стартуем загрузку заявлений
+    fetchApplicationsFromServer();
 });
