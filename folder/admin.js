@@ -2,13 +2,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const usersList = document.getElementById('users-list');
     const noUsersMessage = document.getElementById('no-users-message');
 
-    // Функция для отображения таблицы пользователей
-    function renderUsers() {
-        // Получаем список пользователей из локального хранилища
-        const users = JSON.parse(localStorage.getItem('users')) || [];
+    // Получить пользователей с сервера
+    async function fetchUsers() {
+        const response = await fetch('https://zayavleniya-site-1.onrender.com/users');
+        return await response.json();
+    }
 
-        // Если пользователей нет, выводим сообщение
-        if (users.length === 0) {
+    // Обновить роль пользователя на сервере
+    async function updateUserRole(iin, role) {
+        const response = await fetch(`https://zayavleniya-site-1.onrender.com/users/${iin}/role`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ role })
+        });
+        return await response.json();
+    }
+
+    // Отобразить пользователей
+    async function renderUsers() {
+        const users = await fetchUsers();
+        if (!users.length) {
             noUsersMessage.style.display = 'block';
             usersList.innerHTML = '';
             return;
@@ -17,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
         usersList.innerHTML = '';
         noUsersMessage.style.display = 'none';
 
-        // Создаем HTML-таблицу
         const table = document.createElement('table');
         table.classList.add('users-table');
         table.innerHTML = `
@@ -32,20 +44,19 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         const tbody = table.querySelector('tbody');
 
-        // Заполняем таблицу данными о пользователях
-        users.forEach((user, index) => {
+        users.forEach((user) => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${user.iin}</td>
                 <td>
-                    <select class="role-select" data-index="${index}">
+                    <select class="role-select" data-iin="${user.iin}">
                         <option value="parent" ${user.role === 'parent' ? 'selected' : ''}>parent</option>
                         <option value="educator" ${user.role === 'educator' ? 'selected' : ''}>educator</option>
                         <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>admin</option>
                     </select>
                 </td>
                 <td>
-                    <button class="save-role-btn" data-index="${index}">Сохранить</button>
+                    <button class="save-role-btn" data-iin="${user.iin}">Сохранить</button>
                 </td>
             `;
             tbody.appendChild(row);
@@ -54,22 +65,18 @@ document.addEventListener('DOMContentLoaded', () => {
         usersList.appendChild(table);
     }
 
-    // Обработчик события для кнопки "Сохранить"
-    usersList.addEventListener('click', (e) => {
+    // Изменить роль пользователя
+    usersList.addEventListener('click', async (e) => {
         if (e.target.classList.contains('save-role-btn')) {
-            const index = e.target.dataset.index;
-            const selectElement = usersList.querySelector(`.role-select[data-index="${index}"]`);
-            const newRole = selectElement.value;
-            
-            let users = JSON.parse(localStorage.getItem('users'));
-            if (users[index].role !== newRole) {
-                users[index].role = newRole;
-                localStorage.setItem('users', JSON.stringify(users));
-                alert('Роль успешно обновлена!');
-            }
+            const iin = e.target.dataset.iin;
+            const select = usersList.querySelector(`.role-select[data-iin="${iin}"]`);
+            const newRole = select.value;
+            const result = await updateUserRole(iin, newRole);
+            alert(result.message);
+            await renderUsers();
         }
     });
 
-    // Инициализируем отображение пользователей при загрузке страницы
+    // Инициализация
     renderUsers();
 });
