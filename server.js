@@ -118,6 +118,44 @@ app.get('/applications', async (req, res) => {
         res.status(500).json({ message: 'Ошибка сервера при получении заявлений.' });
     }
 });
+// Одобрить заявление
+app.patch('/applications/:id/approve', async (req, res) => {
+    try {
+        const application = await Application.findByIdAndUpdate(
+            req.params.id,
+            { status: 'approved' },
+            { new: true }
+        );
+        if (!application) return res.status(404).json({ message: 'Заявление не найдено.' });
+        res.json(application);
+    } catch (error) {
+        res.status(500).json({ message: 'Ошибка сервера при одобрении.' });
+    }
+});
+
+// Отклонить заявление
+app.patch('/applications/:id/reject', async (req, res) => {
+    try {
+        const application = await Application.findByIdAndUpdate(
+            req.params.id,
+            { status: 'rejected' },
+            { new: true }
+        );
+        if (!application) return res.status(404).json({ message: 'Заявление не найдено.' });
+        res.json(application);
+    } catch (error) {
+        res.status(500).json({ message: 'Ошибка сервера при отклонении.' });
+    }
+});
+// Удалить заявление
+app.delete('/applications/:id', async (req, res) => {
+    try {
+        await Application.findByIdAndDelete(req.params.id);
+        res.status(200).json({ message: 'Заявление удалено.' });
+    } catch (error) {
+        res.status(500).json({ message: 'Ошибка сервера при удалении.' });
+    }
+});
 // Получение пользователей
 app.get('/users', async (req, res) => {
     try {
