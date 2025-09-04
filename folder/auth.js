@@ -250,18 +250,19 @@ if (applicationForm && submitButton) {
         const startDate = document.getElementById('start_date').value;
         const endDate = document.getElementById('end_date').value;
 
-        const applicationData = {
-            director_name: directorName,
-            application_type: applicationType,
-            parent_name: parentName,
-            address: address,
-            phone: phone,
-            child_class: childClass,
-            child_name: childName,
-            start_date: startDate,
-            end_date: endDate,
-            status: 'pending',
-        };
+    const applicationData = {
+    iin: localStorage.getItem('iin'), // <-- добавь это!
+    director_name: directorName,
+    application_type: applicationType,
+    parent_name: parentName,
+    address: address,
+    phone: phone,
+    child_class: childClass,
+    child_name: childName,
+    start_date: startDate,
+    end_date: endDate,
+    status: 'pending',
+};
 
         try {
             const response = await fetch('https://zayavleniya-site-1.onrender.com/applications', {
