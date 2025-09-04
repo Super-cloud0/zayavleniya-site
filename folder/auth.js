@@ -136,6 +136,7 @@ if (loginForm) {
             if (response.ok) {
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('userRole', data.role); // Сохраняем роль пользователя
+                localStorage.setItem('iin', data.iin);
                 messageDiv.textContent = 'Вход выполнен успешно!';
                 messageDiv.style.backgroundColor = '#d4edda';
                 messageDiv.style.color = '#155724';
