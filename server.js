@@ -165,6 +165,16 @@ app.get('/applications/:id', async (req, res) => {
         res.status(500).json({ message: "Ошибка сервера при получении заявления." });
     }
 });
+// Получить заявление по id
+app.get('/applications/:id', async (req, res) => {
+    try {
+        const application = await Application.findById(req.params.id);
+        if (!application) return res.status(404).json({ message: "Заявление не найдено." });
+        res.json(application);
+    } catch (error) {
+        res.status(500).json({ message: "Ошибка сервера при получении заявления." });
+    }
+});
 // Получение пользователей
 app.get('/users', async (req, res) => {
     try {
