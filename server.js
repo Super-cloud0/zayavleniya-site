@@ -1,18 +1,16 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path'); // Добавим path для ясности, хотя он сейчас не используется
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGO_URI;
+// Временно укажи строку подключения напрямую для теста:
+const MONGODB_URI = "mongodb+srv://Alisher:Alisher228@cluster0.ajmm1ju.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
-// Middleware (промежуточное ПО)
-// Убедитесь, что 'https://zayavleniya-site.vercel.app' - это ТОЧНЫЙ адрес вашего фронтенда
 app.use(cors({ origin: 'https://zayavleniya-site.vercel.app' }));
-app.use(express.json()); // Для парсинга JSON-запросов
+app.use(express.json());
 
-// Подключение к базе данных MongoDB
 mongoose.connect(MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -22,21 +20,19 @@ mongoose.connect(MONGODB_URI, {
 })
 .catch((err) => {
     console.error("Ошибка подключения к MongoDB:", err);
-    process.exit(1); // Выход из приложения с ошибкой при неудачном подключении к БД
+    process.exit(1);
 });
 
-// ------------- ОПРЕДЕЛЕНИЕ СХЕМ И МОДЕЛЕЙ ------------
-// Схема и модель для пользователя
+// --- Схемы ---
 const userSchema = new mongoose.Schema({
     iin: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    role: { type: String, default: 'parent' }, // Роль по умолчанию 'parent'
+    role: { type: String, default: 'parent' },
 });
 const User = mongoose.model('User', userSchema);
 
-// Схема и модель для заявления
 const applicationSchema = new mongoose.Schema({
-    iin: { type: String, required: true }, // ИИН пользователя, отправившего заявление
+    iin: { type: String, required: true },
     director_name: { type: String, required: true },
     application_type: { type: String, required: true },
     parent_name: { type: String, required: true },
@@ -46,16 +42,14 @@ const applicationSchema = new mongoose.Schema({
     child_name: { type: String, required: true },
     start_date: { type: String, required: true },
     end_date: { type: String, required: true },
-    status: { type: String, default: 'pending' }, // pending, approved, rejected
+    status: { type: String, default: 'pending' },
     timestamp: { type: Date, default: Date.now },
 });
 const Application = mongoose.model('Application', applicationSchema);
-// ---------------------------------------------------
 
+// --- Маршруты ---
 
-// ------------- МАРШРУТЫ API ------------
-
-// Маршрут для регистрации пользователя
+// Регистрация
 app.post('/register', async (req, res) => {
     try {
         const { iin, password, role } = req.body;
@@ -66,33 +60,29 @@ app.post('/register', async (req, res) => {
         if (error.code === 11000) {
             return res.status(409).send({ message: 'Пользователь с таким ИИН уже существует!' });
         }
-        console.error("Ошибка при регистрации:", error);
         res.status(500).send({ message: 'Ошибка сервера' });
     }
 });
 
-// Маршрут для входа в систему
+// Вход
 app.post('/login', async (req, res) => {
     try {
         const { iin, password } = req.body;
         const user = await User.findOne({ iin });
-
         if (!user || user.password !== password) {
             return res.status(401).send({ message: 'Неправильный ИИН или пароль!' });
         }
-
         res.status(200).send({
             message: 'Вход выполнен успешно!',
             role: user.role,
             iin: user.iin
         });
     } catch (error) {
-        console.error("Ошибка при входе:", error);
         res.status(500).send({ message: 'Ошибка сервера' });
     }
 });
 
-// Маршрут для отправки заявления
+// Отправка заявления
 app.post('/applications', async (req, res) => {
     try {
         const {
@@ -100,6 +90,12 @@ app.post('/applications', async (req, res) => {
             address, phone, child_class, child_name,
             start_date, end_date
         } = req.body;
+        // Проверка на обязательные поля
+        if (!iin || !director_name || !application_type || !parent_name ||
+            !address || !phone || !child_class || !child_name ||
+            !start_date || !end_date) {
+            return res.status(400).send({ message: 'Все поля должны быть заполнены!' });
+        }
 
         const newApplication = new Application({
             iin, director_name, application_type, parent_name,
@@ -110,12 +106,11 @@ app.post('/applications', async (req, res) => {
         await newApplication.save();
         res.status(201).send({ message: 'Заявление успешно отправлено!', application: newApplication });
     } catch (error) {
-        console.error("Ошибка при отправке заявления:", error);
         res.status(500).send({ message: 'Ошибка сервера при отправке заявления.' });
     }
 });
 
-// Маршрут для получения всех заявлений (для администратора/воспитателя)
+// Получение пользователей
 app.get('/users', async (req, res) => {
     try {
         const users = await User.find({}, '-password');
@@ -125,7 +120,7 @@ app.get('/users', async (req, res) => {
     }
 });
 
-// Изменить роль пользователя по ИИН
+// Изменение роли пользователя
 app.put('/users/:iin/role', async (req, res) => {
     try {
         const { iin } = req.params;
@@ -138,29 +133,7 @@ app.put('/users/:iin/role', async (req, res) => {
     }
 });
 
-// Маршрут для изменения роли пользователя (ТОЛЬКО ДЛЯ АДМИНА)
-app.put('/users/:iin/role', async (req, res) => {
-    try {
-        const { iin } = req.params;
-        const { role } = req.body;
-
-        // В реальном приложении здесь обязательно нужна аутентификация и проверка прав администратора
-        const user = await User.findOneAndUpdate({ iin: iin }, { role: role }, { new: true });
-
-        if (user) {
-            res.status(200).send({ message: `Роль пользователя с ИИН ${user.iin} изменена на ${user.role}.` });
-        } else {
-            res.status(404).send({ message: `Пользователь с ИИН ${iin} не найден.` });
-        }
-    } catch (error) {
-        console.error("Ошибка при изменении роли:", error);
-        res.status(500).send({ message: 'Ошибка сервера при изменении роли.' });
-    }
-});
-
-// ---------------------------------------------------
-
-// Запуск сервера
+// --- Запуск сервера ---
 app.listen(PORT, () => {
     console.log(`Сервер запущен на порту ${PORT}`);
 });
