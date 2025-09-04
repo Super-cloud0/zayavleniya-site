@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const applicationCardLink = document.getElementById('application-card-link');
     const applicationCardTitle = document.getElementById('application-card-title');
     const applicationCardDescription = document.getElementById('application-card-description');
-
+   
     // Function to update status indicator, navigation, and the logout button
     function updateStatusAndNav() {
         const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
@@ -241,29 +241,29 @@ if (applicationForm && submitButton) {
             alert('Пожалуйста, войдите в систему, чтобы отправить заявление!');
             return;
         }
-        const directorName = document.getElementById('director_name').value;
-        const applicationType = document.getElementById('applicationType').value;
-        const parentName = document.getElementById('parent_name').value;
-        const address = document.getElementById('address').value;
-        const phone = document.getElementById('phone').value;
-        const childClass = document.getElementById('child_class').value;
-        const childName = document.getElementById('child_name').value;
-        const startDate = document.getElementById('start_date').value;
-        const endDate = document.getElementById('end_date').value;
+    const iin = localStorage.getItem('iin'); // ВАЖНО!
+    const directorName = document.getElementById('director_name').value;
+    const applicationType = document.getElementById('applicationType').value;
+    const parentName = document.getElementById('parent_name').value;
+    const address = document.getElementById('address').value;
+    const phone = document.getElementById('phone').value;
+    const childClass = document.getElementById('child_class').value;
+    const childName = document.getElementById('child_name').value;
+    const startDate = document.getElementById('start_date').value;
+    const endDate = document.getElementById('end_date').value;
 
     const applicationData = {
-    iin: localStorage.getItem('iin'), // <-- добавь это!
-    director_name: directorName,
-    application_type: applicationType,
-    parent_name: parentName,
-    address: address,
-    phone: phone,
-    child_class: childClass,
-    child_name: childName,
-    start_date: startDate,
-    end_date: endDate,
-    status: 'pending',
-};
+        iin: iin,
+        director_name: directorName,
+        application_type: applicationType,
+        parent_name: parentName,
+        address: address,
+        phone: phone,
+        child_class: childClass,
+        child_name: childName,
+        start_date: startDate,
+        end_date: endDate
+    };
 
         try {
             const response = await fetch('https://zayavleniya-site-1.onrender.com/applications', {
