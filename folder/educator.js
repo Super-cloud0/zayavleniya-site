@@ -10,7 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderApplications() {
-        const applications = JSON.parse(localStorage.getItem('applications')) || [];
+        async function fetchApplicationsFromServer() {
+    const response = await fetch('https://zayavleniya-site-1.onrender.com/applications');
+    const applications = await response.json();
+    // Дальнейшая отрисовка как сейчас
+}
 
         if (applications.length === 0) {
             noApplicationsMessage.style.display = 'block';
