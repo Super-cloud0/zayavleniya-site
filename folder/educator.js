@@ -76,50 +76,61 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Функция генерации и скачивания Word-документа
-    async function generateDocx(app) {
-        // Пример шаблона docx, если используется docxtemplater
-        const templateUrl = 'application_template.docx'; // путь к шаблону
-        try {
-            const response = await fetch(templateUrl);
-            if (!response.ok) throw new Error("Не найден шаблон docx");
-            const content = await response.arrayBuffer();
+async function generateDocx(app) {
+    const templateUrl = 'application_template.docx'; // поправьте путь при необходимости
+    try {
+        const response = await fetch(templateUrl);
+        console.log('Template fetch url:', response.url, 'status:', response.status, 'content-type:', response.headers.get('content-type'));
 
-            const zip = new PizZip(content);
-            const doc = new window.docxtemplater(zip, {
-                paragraphLoop: true,
-                linebreaks: true,
-            });
+        if (!response.ok) throw new Error("Не найден шаблон docx (status " + response.status + ")");
 
-            // Подставьте свои поля
-            doc.setData({
-                application_type: app.application_type,
-                child_name: app.child_name,
-                child_class: app.child_class,
-                parent_name: app.parent_name,
-                phone: app.phone,
-                start_date: app.start_date,
-                end_date: app.end_date,
-                // ...добавьте нужные поля
-            });
+        const contentType = response.headers.get('content-type') || '';
+        const buffer = await response.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
 
-            try {
-                doc.render();
-            } catch (error) {
-                alert('Ошибка при формировании документа: ' + error.message);
-                return;
-            }
-
-            const out = doc.getZip().generate({
-                type: "blob",
-                mimeType:
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            });
-
-            saveAs(out, `Заявление_${app.child_name}_${app.start_date}.docx`);
-        } catch (err) {
-            alert("Ошибка при генерации документа: " + err.message);
+        // проверка: docx — zip, начинается с 'PK' (0x50 0x4B)
+        if (bytes.length < 4 || bytes[0] !== 0x50 || bytes[1] !== 0x4B) {
+            // если сервер отдал HTML вместо docx — попытаемся прочесть начало как строку для отладки
+            const start = new TextDecoder().decode(bytes.subarray(0, Math.min(200, bytes.length)));
+            console.error('Получен не-docx. Начало файла:', start);
+            throw new Error('Шаблон docx не найден или возвращён HTML. Проверьте путь и конфигурацию сервера.');
         }
+
+        const zip = new PizZip(buffer);
+        const doc = new window.docxtemplater(zip, {
+            paragraphLoop: true,
+            linebreaks: true,
+        });
+
+        doc.setData({
+            application_type: app.application_type,
+            child_name: app.child_name,
+            child_class: app.child_class,
+            parent_name: app.parent_name,
+            phone: app.phone,
+            start_date: app.start_date,
+            end_date: app.end_date,
+        });
+
+        try {
+            doc.render();
+        } catch (error) {
+            console.error('docxtemplater render error', error);
+            alert('Ошибка при формировании документа: ' + (error.message || error));
+            return;
+        }
+
+        const out = doc.getZip().generate({
+            type: "blob",
+            mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        });
+
+        saveAs(out, `Заявление_${app.child_name || 'без_ФИО'}_${app.start_date || 'дата'}.docx`);
+    } catch (err) {
+        alert("Ошибка при генерации документа: " + err.message);
     }
+}
+
 
     // Делегируем обработчики кнопок (только один раз!)
     applicationsList.addEventListener('click', async (e) => {
