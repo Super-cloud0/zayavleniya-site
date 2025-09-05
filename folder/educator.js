@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Функция генерации и скачивания Word-документа
     async function generateDocx(app) {
         // Пример шаблона docx, если используется docxtemplater
-        const templateUrl = '/templates/application_template.docx'; // путь к шаблону
+        const templateUrl = './templates/application_template.docx'; // путь к шаблону
         try {
             const response = await fetch(templateUrl);
             if (!response.ok) throw new Error("Не найден шаблон docx");
