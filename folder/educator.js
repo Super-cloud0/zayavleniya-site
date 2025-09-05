@@ -9,84 +9,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // Загружаем заявления с сервера
-   // ... (часть кода выше без изменений)
-
-// Функция генерации и скачивания Word-документа
-async function generateDocx(app) {
-    // Пример шаблона docx, если используется docxtemplater
-    const templateUrl = '/templates/application_template.docx'; // путь к шаблону
-    const response = await fetch(templateUrl);
-    const content = await response.arrayBuffer();
-
-    const zip = new PizZip(content);
-    const doc = new window.docxtemplater(zip, {
-        paragraphLoop: true,
-        linebreaks: true,
-    });
-
-    // Подставьте свои поля
-    doc.setData({
-        application_type: app.application_type,
-        child_name: app.child_name,
-        child_class: app.child_class,
-        parent_name: app.parent_name,
-        phone: app.phone,
-        start_date: app.start_date,
-        end_date: app.end_date,
-        // ...добавьте нужные поля
-    });
-
-    try {
-        doc.render();
-    } catch (error) {
-        alert('Ошибка при формировании документа: ' + error.message);
-        return;
-    }
-
-    const out = doc.getZip().generate({
-        type: "blob",
-        mimeType:
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    });
-
-    saveAs(out, `Заявление_${app.child_name}_${app.start_date}.docx`);
-}
-
-// Делегируем обработчики кнопок
-applicationsList.addEventListener('click', async (e) => {
-    const appId = e.target.dataset.id;
-    if (!appId) return;
-
-    // approve
-    if (e.target.classList.contains('approve-btn')) {
-        await fetch(`https://zayavleniya-site-1.onrender.com/applications/${appId}/approve`, { method: 'PATCH' });
-        fetchApplicationsFromServer();
-    }
-    // reject
-    else if (e.target.classList.contains('reject-btn')) {
-        await fetch(`https://zayavleniya-site-1.onrender.com/applications/${appId}/reject`, { method: 'PATCH' });
-        fetchApplicationsFromServer();
-    }
-    // delete
-    else if (e.target.classList.contains('delete-btn')) {
-        await fetch(`https://zayavleniya-site-1.onrender.com/applications/${appId}`, { method: 'DELETE' });
-        fetchApplicationsFromServer();
-    }
-    // download
-    else if (e.target.classList.contains('download-btn')) {
+    // Функция загрузки заявлений с сервера
+    async function fetchApplicationsFromServer() {
         try {
-            const response = await fetch(`https://zayavleniya-site-1.onrender.com/applications/${appId}`);
-            if (!response.ok) throw new Error('Не удалось получить данные заявления');
-            const app = await response.json();
-            await generateDocx(app);
+            const response = await fetch('https://zayavleniya-site-1.onrender.com/applications');
+            if (!response.ok) throw new Error("Ошибка загрузки заявлений");
+            const data = await response.json();
+            renderApplications(data);
         } catch (err) {
-            alert('Ошибка при скачивании заявления: ' + err.message);
+            noApplicationsMessage.textContent = "Ошибка загрузки заявлений: " + err.message;
+            noApplicationsMessage.style.display = 'block';
         }
     }
-});
-
-// ... (остальной код без изменений)
 
     // Отрисовка заявлений
     function renderApplications(applications) {
@@ -141,34 +75,78 @@ applicationsList.addEventListener('click', async (e) => {
         });
     }
 
-    // Функция для генерации и скачивания Word-документа (оставь как есть)
+    // Функция генерации и скачивания Word-документа
+    async function generateDocx(app) {
+        // Пример шаблона docx, если используется docxtemplater
+        const templateUrl = '/templates/application_template.docx'; // путь к шаблону
+        try {
+            const response = await fetch(templateUrl);
+            if (!response.ok) throw new Error("Не найден шаблон docx");
+            const content = await response.arrayBuffer();
 
-    // Делегируем обработчики кнопок
+            const zip = new PizZip(content);
+            const doc = new window.docxtemplater(zip, {
+                paragraphLoop: true,
+                linebreaks: true,
+            });
+
+            // Подставьте свои поля
+            doc.setData({
+                application_type: app.application_type,
+                child_name: app.child_name,
+                child_class: app.child_class,
+                parent_name: app.parent_name,
+                phone: app.phone,
+                start_date: app.start_date,
+                end_date: app.end_date,
+                // ...добавьте нужные поля
+            });
+
+            try {
+                doc.render();
+            } catch (error) {
+                alert('Ошибка при формировании документа: ' + error.message);
+                return;
+            }
+
+            const out = doc.getZip().generate({
+                type: "blob",
+                mimeType:
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            });
+
+            saveAs(out, `Заявление_${app.child_name}_${app.start_date}.docx`);
+        } catch (err) {
+            alert("Ошибка при генерации документа: " + err.message);
+        }
+    }
+
+    // Делегируем обработчики кнопок (только один раз!)
     applicationsList.addEventListener('click', async (e) => {
         const appId = e.target.dataset.id;
         if (!appId) return;
 
-        // approve
         if (e.target.classList.contains('approve-btn')) {
             await fetch(`https://zayavleniya-site-1.onrender.com/applications/${appId}/approve`, { method: 'PATCH' });
             fetchApplicationsFromServer();
         }
-        // reject
         else if (e.target.classList.contains('reject-btn')) {
             await fetch(`https://zayavleniya-site-1.onrender.com/applications/${appId}/reject`, { method: 'PATCH' });
             fetchApplicationsFromServer();
         }
-        // delete
         else if (e.target.classList.contains('delete-btn')) {
             await fetch(`https://zayavleniya-site-1.onrender.com/applications/${appId}`, { method: 'DELETE' });
             fetchApplicationsFromServer();
         }
-        // download
         else if (e.target.classList.contains('download-btn')) {
-            // Найди заявление по ID и вызови generateDocx
-            const response = await fetch(`https://zayavleniya-site-1.onrender.com/applications/${appId}`);
-            const app = await response.json();
-            await generateDocx(app);
+            try {
+                const response = await fetch(`https://zayavleniya-site-1.onrender.com/applications/${appId}`);
+                if (!response.ok) throw new Error('Не удалось получить данные заявления');
+                const app = await response.json();
+                await generateDocx(app);
+            } catch (err) {
+                alert('Ошибка при скачивании заявления: ' + err.message);
+            }
         }
     });
 
