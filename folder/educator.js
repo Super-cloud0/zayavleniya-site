@@ -10,17 +10,83 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Загружаем заявления с сервера
-    async function fetchApplicationsFromServer() {
+   // ... (часть кода выше без изменений)
+
+// Функция генерации и скачивания Word-документа
+async function generateDocx(app) {
+    // Пример шаблона docx, если используется docxtemplater
+    const templateUrl = '/templates/application_template.docx'; // путь к шаблону
+    const response = await fetch(templateUrl);
+    const content = await response.arrayBuffer();
+
+    const zip = new PizZip(content);
+    const doc = new window.docxtemplater(zip, {
+        paragraphLoop: true,
+        linebreaks: true,
+    });
+
+    // Подставьте свои поля
+    doc.setData({
+        application_type: app.application_type,
+        child_name: app.child_name,
+        child_class: app.child_class,
+        parent_name: app.parent_name,
+        phone: app.phone,
+        start_date: app.start_date,
+        end_date: app.end_date,
+        // ...добавьте нужные поля
+    });
+
+    try {
+        doc.render();
+    } catch (error) {
+        alert('Ошибка при формировании документа: ' + error.message);
+        return;
+    }
+
+    const out = doc.getZip().generate({
+        type: "blob",
+        mimeType:
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    });
+
+    saveAs(out, `Заявление_${app.child_name}_${app.start_date}.docx`);
+}
+
+// Делегируем обработчики кнопок
+applicationsList.addEventListener('click', async (e) => {
+    const appId = e.target.dataset.id;
+    if (!appId) return;
+
+    // approve
+    if (e.target.classList.contains('approve-btn')) {
+        await fetch(`https://zayavleniya-site-1.onrender.com/applications/${appId}/approve`, { method: 'PATCH' });
+        fetchApplicationsFromServer();
+    }
+    // reject
+    else if (e.target.classList.contains('reject-btn')) {
+        await fetch(`https://zayavleniya-site-1.onrender.com/applications/${appId}/reject`, { method: 'PATCH' });
+        fetchApplicationsFromServer();
+    }
+    // delete
+    else if (e.target.classList.contains('delete-btn')) {
+        await fetch(`https://zayavleniya-site-1.onrender.com/applications/${appId}`, { method: 'DELETE' });
+        fetchApplicationsFromServer();
+    }
+    // download
+    else if (e.target.classList.contains('download-btn')) {
         try {
-            const response = await fetch('https://zayavleniya-site-1.onrender.com/applications');
-            const applications = await response.json();
-            renderApplications(applications);
-        } catch (error) {
-            console.error('Ошибка загрузки заявлений:', error);
-            noApplicationsMessage.textContent = "Ошибка загрузки заявлений!";
-            noApplicationsMessage.style.display = 'block';
+            const response = await fetch(`https://zayavleniya-site-1.onrender.com/applications/${appId}`);
+            if (!response.ok) throw new Error('Не удалось получить данные заявления');
+            const app = await response.json();
+            await generateDocx(app);
+        } catch (err) {
+            alert('Ошибка при скачивании заявления: ' + err.message);
         }
     }
+});
+
+// ... (остальной код без изменений)
 
     // Отрисовка заявлений
     function renderApplications(applications) {
