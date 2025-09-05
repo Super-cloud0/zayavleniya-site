@@ -77,45 +77,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Функция генерации и скачивания Word-документа
 async function generateDocx(app) {
-    const templateUrl = 'application_template.docx'; // поправьте путь при необходимости
+    const templateUrl = 'application_template.docx'; // поправьте путь если нужно
     try {
         const response = await fetch(templateUrl);
-        console.log('Template fetch url:', response.url, 'status:', response.status, 'content-type:', response.headers.get('content-type'));
-
         if (!response.ok) throw new Error("Не найден шаблон docx (status " + response.status + ")");
-
-        const contentType = response.headers.get('content-type') || '';
         const buffer = await response.arrayBuffer();
         const bytes = new Uint8Array(buffer);
 
-        // проверка: docx — zip, начинается с 'PK' (0x50 0x4B)
+        // простая проверка: docx — zip, начинается с "PK"
         if (bytes.length < 4 || bytes[0] !== 0x50 || bytes[1] !== 0x4B) {
-            // если сервер отдал HTML вместо docx — попытаемся прочесть начало как строку для отладки
-            const start = new TextDecoder().decode(bytes.subarray(0, Math.min(200, bytes.length)));
-            console.error('Получен не-docx. Начало файла:', start);
-            throw new Error('Шаблон docx не найден или возвращён HTML. Проверьте путь и конфигурацию сервера.');
+            const start = new TextDecoder().decode(bytes.subarray(0, Math.min(500, bytes.length)));
+            console.error('Шаблон не выглядит как .docx. Начало файла:', start);
+            throw new Error('Шаблон .docx не получен — проверьте путь/сервер (в ответе HTML).');
         }
 
         const zip = new PizZip(buffer);
-        const doc = new window.docxtemplater(zip, {
-            paragraphLoop: true,
-            linebreaks: true,
-        });
+        const doc = new window.docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
 
+        // для отладки: посмотри, какие поля реально приходят из сервера
+        console.log('Данные заявления (app):', app);
+
+        // Нормализуем/маппим данные под имена в шаблоне
+        const parent_name = app.parent_name || app.parent || app.parentName || '';
+        const address = app.address || app.addr || app.addresses || '';
+        const phone = app.phone || app.tel || app.phone_number || '';
+        const child_name = app.child_name || app.childName || app.child || '';
+        const child_class = app.child_class || app.childClass || app.class || '';
+        const start = app.start_date || app.startDate || app.start || '';
+        const end = app.end_date || app.endDate || app.end || '';
+        const dates = (start && end) ? `${start} - ${end}` : (start || end || '');
+        const submission_date = app.submission_date || app.submittedAt || app.createdAt || '';
+
+        // Заполняем именно те ключи, которые есть в вашем шаблоне .docx
         doc.setData({
-            application_type: app.application_type,
-            child_name: app.child_name,
-            child_class: app.child_class,
-            parent_name: app.parent_name,
-            phone: app.phone,
-            start_date: app.start_date,
-            end_date: app.end_date,
+            parent_name,
+            address,
+            phone,
+            child_name,
+            child_class,
+            dates,
+            submission_date,
+            application_type: app.application_type || app.type || '',
+            // если нужны ещё — добавьте сюда
         });
 
         try {
             doc.render();
         } catch (error) {
-            console.error('docxtemplater render error', error);
+            console.error('Ошибка рендера docxtemplater:', error);
             alert('Ошибка при формировании документа: ' + (error.message || error));
             return;
         }
@@ -125,11 +134,13 @@ async function generateDocx(app) {
             mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         });
 
-        saveAs(out, `Заявление_${app.child_name || 'без_ФИО'}_${app.start_date || 'дата'}.docx`);
+        saveAs(out, `Заявление_${child_name || 'без_ФИО'}_${(start || '').replaceAll(':','-') || 'дата'}.docx`);
     } catch (err) {
+        console.error(err);
         alert("Ошибка при генерации документа: " + err.message);
     }
 }
+
 
 
     // Делегируем обработчики кнопок (только один раз!)
