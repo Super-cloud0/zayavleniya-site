@@ -43,6 +43,7 @@ const applicationSchema = new mongoose.Schema({
     start_date: { type: String, required: true },
     end_date: { type: String, required: true },
     status: { type: String, default: 'pending' },
+    submission_date: { type: String, default: () => new Date().toLocaleDateString('ru-RU') },
     timestamp: { type: Date, default: Date.now },
 });
 const Application = mongoose.model('Application', applicationSchema);
