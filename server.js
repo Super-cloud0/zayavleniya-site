@@ -79,7 +79,7 @@ app.post('/login', async (req, res) => {
             iin: user.iin
         });
     } catch (error) {
-        res.status(500).send({ message: 'Ошибка сервера' });
+        res.status(1500).send({ message: 'Ошибка сервера' });
     }
 });
 
