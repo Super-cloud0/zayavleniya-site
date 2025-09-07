@@ -115,16 +115,16 @@ async function generateDocx(app) {
     holidays: "На каникулы"
 };
         doc.setData({
-            parent_name,
-            address,
-            phone,
-            child_name,
-            child_class,
-            dates,
-            submission_date,
-            application_type: app.application_type || app.type || '',
-            // если нужны ещё — добавьте сюда
-        });
+    parent_name,
+    address,
+    phone,
+    child_name,
+    child_class,
+    dates,
+    submission_date,
+    application_type: typeMap[app.application_type] || app.application_type || '',
+});
+
 
         try {
             doc.render();
