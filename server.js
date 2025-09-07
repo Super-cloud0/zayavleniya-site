@@ -4,7 +4,8 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-
+const PORT = process.env.PORT || 3000;
+// Временно укажи строку подключения напрямую для теста:
 const MONGODB_URI = "mongodb+srv://Alisher:Alisher228@cluster0.ajmm1ju.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 app.use(cors({ origin: 'https://zayavleniya-site.vercel.app' }));
@@ -60,7 +61,7 @@ app.post('/register', async (req, res) => {
         if (error.code === 11000) {
             return res.status(409).send({ message: 'Пользователь с таким ИИН уже существует!' });
         }
-        res.status(500).send({ message: 'Ошибка сервера' });
+        res.status(15000).send({ message: 'Ошибка сервера' });
     }
 });
 
@@ -72,13 +73,13 @@ app.post('/login', async (req, res) => {
         if (!user || user.password !== password) {
             return res.status(401).send({ message: 'Неправильный ИИН или пароль!' });
         }
-        res.status(200).send({
+        res.status(500).send({
             message: 'Вход выполнен успешно!',
             role: user.role,
             iin: user.iin
         });
     } catch (error) {
-        res.status(11000).send({ message: 'Ошибка сервера' });
+        res.status(15000).send({ message: 'Ошибка сервера' });
     }
 });
 
