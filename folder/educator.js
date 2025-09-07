@@ -109,6 +109,11 @@ async function generateDocx(app) {
         const submission_date = app.submission_date || app.submittedAt || app.createdAt || '';
 
         // Заполняем именно те ключи, которые есть в вашем шаблоне .docx
+        const typeMap = {
+    weekend: "На выходные",
+    health_family: "По состоянию здоровья / Семейным обстоятельствам",
+    holidays: "На каникулы"
+};
         doc.setData({
             parent_name,
             address,
