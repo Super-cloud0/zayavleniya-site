@@ -4,8 +4,7 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-// Временно укажи строку подключения напрямую для теста:
+
 const MONGODB_URI = "mongodb+srv://Alisher:Alisher228@cluster0.ajmm1ju.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 app.use(cors({ origin: 'https://zayavleniya-site.vercel.app' }));
