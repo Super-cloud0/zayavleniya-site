@@ -73,13 +73,14 @@ app.post('/login', async (req, res) => {
         if (!user || user.password !== password) {
             return res.status(401).send({ message: 'Неправильный ИИН или пароль!' });
         }
-        res.status(500).send({
+        res.status(200).send({
             message: 'Вход выполнен успешно!',
             role: user.role,
             iin: user.iin
         });
     } catch (error) {
-        res.status(15000).send({ message: 'Ошибка сервера' });
+        res.status(5000).send({ message: 'Ошибка сервера' });
+        res.status(11000).send({ message: 'Ошибка сервера' });
     }
 });
 
