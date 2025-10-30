@@ -5,7 +5,6 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-// Временно укажи строку подключения напрямую для теста:
 const MONGODB_URI = "mongodb+srv://Alisher:Alisher228@cluster0.ajmm1ju.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 app.use(cors({ origin: 'https://zayavleniya-site.vercel.app' }));
@@ -61,7 +60,7 @@ app.post('/register', async (req, res) => {
         if (error.code === 11000) {
             return res.status(409).send({ message: 'Пользователь с таким ИИН уже существует!' });
         }
-        res.status(15000).send({ message: 'Ошибка сервера' });
+        res.status(500).send({ message: 'Ошибка сервера' });
     }
 });
 
@@ -79,8 +78,7 @@ app.post('/login', async (req, res) => {
             iin: user.iin
         });
     } catch (error) {
-        res.status(5000).send({ message: 'Ошибка сервера' });
-        res.status(11000).send({ message: 'Ошибка сервера' });
+        res.status(500).send({ message: 'Ошибка сервера' });
     }
 });
 
@@ -92,7 +90,6 @@ app.post('/applications', async (req, res) => {
             address, phone, child_class, child_name,
             start_date, end_date
         } = req.body;
-        // Проверка на обязательные поля
         if (!iin || !director_name || !application_type || !parent_name ||
             !address || !phone || !child_class || !child_name ||
             !start_date || !end_date) {
@@ -111,6 +108,7 @@ app.post('/applications', async (req, res) => {
         res.status(500).send({ message: 'Ошибка сервера при отправке заявления.' });
     }
 });
+
 // Получение всех заявлений
 app.get('/applications', async (req, res) => {
     try {
@@ -120,6 +118,7 @@ app.get('/applications', async (req, res) => {
         res.status(500).json({ message: 'Ошибка сервера при получении заявлений.' });
     }
 });
+
 // Одобрить заявление
 app.patch('/applications/:id/approve', async (req, res) => {
     try {
@@ -149,6 +148,7 @@ app.patch('/applications/:id/reject', async (req, res) => {
         res.status(500).json({ message: 'Ошибка сервера при отклонении.' });
     }
 });
+
 // Удалить заявление
 app.delete('/applications/:id', async (req, res) => {
     try {
@@ -158,6 +158,8 @@ app.delete('/applications/:id', async (req, res) => {
         res.status(500).json({ message: 'Ошибка сервера при удалении.' });
     }
 });
+
+// Получить заявление по id (оставь только ОДИН маршрут)
 app.get('/applications/:id', async (req, res) => {
     try {
         const application = await Application.findById(req.params.id);
@@ -167,16 +169,7 @@ app.get('/applications/:id', async (req, res) => {
         res.status(500).json({ message: "Ошибка сервера при получении заявления." });
     }
 });
-// Получить заявление по id
-app.get('/applications/:id', async (req, res) => {
-    try {
-        const application = await Application.findById(req.params.id);
-        if (!application) return res.status(404).json({ message: "Заявление не найдено." });
-        res.json(application);
-    } catch (error) {
-        res.status(500).json({ message: "Ошибка сервера при получении заявления." });
-    }
-});
+
 // Получение пользователей
 app.get('/users', async (req, res) => {
     try {
@@ -199,6 +192,8 @@ app.put('/users/:iin/role', async (req, res) => {
         res.status(500).json({ message: 'Ошибка сервера при обновлении роли.' });
     }
 });
+
+// Удалить пользователя
 app.delete('/users/:iin', async (req, res) => {
     try {
         const { iin } = req.params;
@@ -209,6 +204,8 @@ app.delete('/users/:iin', async (req, res) => {
         res.status(500).json({ message: 'Ошибка сервера при удалении пользователя.' });
     }
 });
+
+// Получить заявления пользователя
 app.get('/my-applications/:iin', async (req, res) => {
     try {
         const { iin } = req.params;
