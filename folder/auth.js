@@ -125,17 +125,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Логика формы входа
-   const loginForm = document.getElementById('login-form');
+ // Логика формы входа
+const loginForm = document.getElementById('login-form');
 if (loginForm) {
+    let isSubmitting = false; // предотвращает двойную отправку
+
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        if (isSubmitting) return; // защита
+        isSubmitting = true;
+
         const messageDiv = document.getElementById('message');
         messageDiv.textContent = 'Проверка...';
         messageDiv.style.backgroundColor = '#fff8db';
         messageDiv.style.color = '#856404';
         messageDiv.style.display = 'block';
-        const iinInput = document.getElementById('iin').value;
+
+        const iinInput = document.getElementById('iin').value.trim();
         const passwordInput = document.getElementById('password').value;
+
+        if (!iinInput || !passwordInput) {
+            messageDiv.textContent = 'Заполните все поля.';
+            messageDiv.style.backgroundColor = '#ffebeb';
+            messageDiv.style.color = '#a52a2a';
+            isSubmitting = false;
+            return;
+        }
+
         const credentials = { iin: iinInput, password: passwordInput };
 
         try {
@@ -145,38 +162,50 @@ if (loginForm) {
                 body: JSON.stringify(credentials)
             });
 
-            const data = await response.json();
+            let data;
+            try {
+                data = await response.json();
+            } catch {
+                data = {};
+            }
 
             if (response.ok) {
                 localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('userRole', data.role);
-                localStorage.setItem('iin', data.iin);
+                localStorage.setItem('userRole', data.role || 'parent');
+                localStorage.setItem('iin', data.iin || iinInput);
+
                 messageDiv.textContent = 'Вход выполнен успешно!';
                 messageDiv.style.backgroundColor = '#d4edda';
                 messageDiv.style.color = '#155724';
                 messageDiv.style.display = 'block';
                 updateStatusAndNav();
+
                 setTimeout(() => {
                     if (data.role === 'admin') window.location.href = 'admin.html';
                     else if (data.role === 'educator') window.location.href = 'educator.html';
                     else window.location.href = 'application.html';
-                }, 1000);
+                }, 700);
             } else {
-                localStorage.setItem('isLoggedIn', 'false');
-                messageDiv.textContent = data.message;
+                messageDiv.textContent = data.message || `Ошибка сервера (${response.status})`;
                 messageDiv.style.color = '#a52a2a';
                 messageDiv.style.backgroundColor = '#ffebeb';
                 messageDiv.style.display = 'block';
+                localStorage.setItem('isLoggedIn', 'false');
                 updateStatusAndNav();
             }
         } catch (error) {
-            messageDiv.textContent = 'Ошибка сервера. Попробуйте еще раз позже.';
+            console.error('Ошибка при входе:', error);
+            messageDiv.textContent = 'Ошибка сервера. Попробуйте ещё раз позже.';
             messageDiv.style.color = '#a52a2a';
             messageDiv.style.backgroundColor = '#ffebeb';
             messageDiv.style.display = 'block';
+            localStorage.setItem('isLoggedIn', 'false');
+        } finally {
+            isSubmitting = false;
         }
     });
 }
+
 
     // Логика формы регистрации
     const registrationForm = document.getElementById('registration-form');
