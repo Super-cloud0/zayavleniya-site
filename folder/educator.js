@@ -123,6 +123,7 @@ async function generateDocx(app) {
     dates,
     submission_date,
     application_type: typeMap[app.application_type] || app.application_type || '',
+            end_date: end
 });
 
 
