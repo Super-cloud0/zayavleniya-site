@@ -209,6 +209,15 @@ app.delete('/users/:iin', async (req, res) => {
         res.status(500).json({ message: 'Ошибка сервера при удалении пользователя.' });
     }
 });
+app.get('/my-applications/:iin', async (req, res) => {
+    try {
+        const { iin } = req.params;
+        const applications = await Application.find({ iin });
+        res.status(200).json(applications);
+    } catch (error) {
+        res.status(500).json({ message: 'Ошибка сервера при получении заявлений.' });
+    }
+});
 
 // --- Запуск сервера ---
 app.listen(PORT, () => {
