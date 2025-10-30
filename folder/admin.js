@@ -1,4 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Проверка роли пользователя
+    const userRole = localStorage.getItem('userRole');
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (!isLoggedIn || userRole !== 'admin') {
+        window.location.href = 'index.html';
+        return;
+    }
+
+    // --- Основной код админки ---
     const usersList = document.getElementById('users-list');
     const noUsersMessage = document.getElementById('no-users-message');
 
