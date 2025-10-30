@@ -129,6 +129,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            messageDiv.textContent = 'Проверка...';
+            messageDiv.style.backgroundColor = '#fff8db'; // светло-жёлтый
+            messageDiv.style.color = '#856404';           // тёмно-жёлтый
+            messageDiv.style.display = 'block';
             const iinInput = document.getElementById('iin').value;
             const passwordInput = document.getElementById('password').value;
             const messageDiv = document.getElementById('message');
