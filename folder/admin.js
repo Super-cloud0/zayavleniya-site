@@ -27,6 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return await response.json();
     }
 
+    // Удалить пользователя с сервера
+    async function deleteUser(iin) {
+        const response = await fetch(`https://zayavleniya-site-1.onrender.com/users/${iin}`, {
+            method: 'DELETE'
+        });
+        return await response.json();
+    }
+
     // Отобразить пользователей
     async function renderUsers() {
         const users = await fetchUsers();
@@ -66,6 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
                 <td>
                     <button class="save-role-btn" data-iin="${user.iin}">Сохранить</button>
+                    <button class="delete-user-btn" data-iin="${user.iin}" style="margin-left:8px;background:#a52a2a;color:#fff;border-radius:5px;padding:5px 10px;cursor:pointer;">Удалить</button>
                 </td>
             `;
             tbody.appendChild(row);
@@ -74,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         usersList.appendChild(table);
     }
 
-    // Изменить роль пользователя
+    // Изменить роль пользователя и удалить пользователя
     usersList.addEventListener('click', async (e) => {
         if (e.target.classList.contains('save-role-btn')) {
             const iin = e.target.dataset.iin;
@@ -83,6 +92,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await updateUserRole(iin, newRole);
             alert(result.message);
             await renderUsers();
+            return;
+        }
+        if (e.target.classList.contains('delete-user-btn')) {
+            const iin = e.target.dataset.iin;
+            if (confirm('Вы уверены, что хотите удалить пользователя?')) {
+                const result = await deleteUser(iin);
+                alert(result.message);
+                await renderUsers();
+            }
+            return;
         }
     });
 
