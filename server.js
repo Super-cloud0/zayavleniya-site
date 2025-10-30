@@ -199,6 +199,16 @@ app.put('/users/:iin/role', async (req, res) => {
         res.status(500).json({ message: 'Ошибка сервера при обновлении роли.' });
     }
 });
+app.delete('/users/:iin', async (req, res) => {
+    try {
+        const { iin } = req.params;
+        const user = await User.findOneAndDelete({ iin });
+        if (!user) return res.status(404).json({ message: 'Пользователь не найден.' });
+        res.status(200).json({ message: 'Пользователь удален.' });
+    } catch (error) {
+        res.status(500).json({ message: 'Ошибка сервера при удалении пользователя.' });
+    }
+});
 
 // --- Запуск сервера ---
 app.listen(PORT, () => {
